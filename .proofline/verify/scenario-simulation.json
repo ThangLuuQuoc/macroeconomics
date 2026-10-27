@@ -1,0 +1,92 @@
+{
+  "spec": "scenario-simulation",
+  "repo": "macroeconomics",
+  "base_ref": "main",
+  "base_sha": "a02fde7b69ae258b74266fef21b5b10cdd0fd385",
+  "head_sha": "e02a9fb1baf4995ea4595668db14fac406d87ecf",
+  "runs": 2,
+  "gates": [
+    {
+      "key": "acceptance_unchanged",
+      "status": "pass",
+      "detail": "journey đúng bản đã duyệt (510861d)",
+      "evidence": {
+        "blob": "510861d0739f151199a56e40f09b4d5bab4f72cc"
+      }
+    },
+    {
+      "key": "test_integrity",
+      "status": "pass",
+      "detail": "không sửa/xóa test cũ, không thêm skip",
+      "evidence": {}
+    },
+    {
+      "key": "new_tests_added",
+      "status": "pass",
+      "detail": "1 file test mới: tests/test_scenario.py",
+      "evidence": {
+        "added": [
+          "tests/test_scenario.py"
+        ]
+      }
+    },
+    {
+      "key": "acceptance_fails_before",
+      "status": "pass",
+      "detail": "3/3 test của journey fail ở khẳng định trên base",
+      "evidence": {
+        "attempts": [
+          {
+            "outcome": "assertion",
+            "detail": "3/3"
+          }
+        ],
+        "failed": [
+          "tests.journeys.test_scenario_simulation::test_scenario_recovers_a_known_effect_and_says_what_it_cannot_estimate[chromium]",
+          "tests.journeys.test_scenario_simulation::test_response_scales_with_shock_size[chromium]",
+          "tests.journeys.test_scenario_simulation::test_cpi_is_not_spliced_when_sources_disagree[chromium]"
+        ]
+      }
+    },
+    {
+      "key": "acceptance_passes_after",
+      "status": "pass",
+      "detail": "3/3 test của journey pass",
+      "evidence": {}
+    },
+    {
+      "key": "no_regression",
+      "status": "pass",
+      "detail": "không test nào xấu đi so với base · base: 0, 0 fail · nhánh: 0, 0 fail (theo lượt)",
+      "evidence": {
+        "consistent": [],
+        "unstable": [],
+        "pre_existing": [],
+        "new_tests_failing": [],
+        "base": {
+          "failed_per_run": [
+            0,
+            0
+          ],
+          "always_failing": [],
+          "unstable": []
+        }
+      }
+    },
+    {
+      "key": "static_typecheck",
+      "status": "pass",
+      "detail": "'uv run mypy && pnpm --dir web typecheck' sạch trên nhánh",
+      "evidence": {}
+    },
+    {
+      "key": "static_lint",
+      "status": "pass",
+      "detail": "'uv run ruff check . && uv run ruff format --check .' sạch trên nhánh",
+      "evidence": {}
+    }
+  ],
+  "verified_at": "2026-10-27T04:10:59+00:00",
+  "installed": true,
+  "status": "pass"
+}
