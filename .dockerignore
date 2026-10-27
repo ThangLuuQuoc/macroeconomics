@@ -1,0 +1,12 @@
+# Không chép môi trường và bản build của máy vào image (vd node_modules bản Windows).
+.git
+.venv
+**/__pycache__
+.pytest_cache
+.mypy_cache
+.ruff_cache
+web/node_modules
+web/.next
+web/out
+data/raw
+.env
