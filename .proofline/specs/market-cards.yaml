@@ -1,0 +1,9 @@
+name: market-cards
+task_type: feature
+spec: market-cards.md
+base: main
+journey: tests/journeys/test_market_cards.py
+journey_approvals:
+- blob: 07e0aa59487da64056286df7ef4abd1abb406703
+  approved_at: '2026-10-27T03:30:50+00:00'
+  note: 'v1: chủ dự án duyệt spec + journey; đồng ý role chỉ đọc macro_reader'
