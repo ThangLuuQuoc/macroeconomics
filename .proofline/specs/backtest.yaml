@@ -1,0 +1,9 @@
+name: backtest
+task_type: feature
+spec: backtest.md
+base: main
+journey: tests/journeys/test_backtest.py
+journey_approvals:
+- blob: 73c33adee7fb94eebd59f3aaad1c2260cce1c121
+  approved_at: '2026-10-27T04:30:05+00:00'
+  note: 'v1: chủ dự án duyệt spec + journey, ngưỡng 0,8'

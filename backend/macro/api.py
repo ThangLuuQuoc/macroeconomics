@@ -6,6 +6,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 
+from macro.backtest import BacktestResult, run_backtest
 from macro.config import Settings, load_settings
 from macro.dashboard import IndicatorCard, build_cards
 from macro.db import connect, init_schema
@@ -36,6 +37,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             raise HTTPException(400, f"Cú sốc không hợp lệ: {shock}")
         with connect(settings.database_url) as conn:
             return simulate(conn, shock, SHOCKS[shock].default_size if size is None else size)
+
+    @app.get("/api/backtest")
+    def backtest() -> BacktestResult:
+        with connect(settings.database_url) as conn:
+            return run_backtest(conn)
 
     @app.get("/api/scenario/shocks")
     def shocks() -> list[dict[str, object]]:

@@ -29,6 +29,8 @@ export default function OverviewPage() {
       <h1>Tổng quan vĩ mô</h1>
       <nav className="nav">
         <Link href="/kich-ban/">Giả lập kịch bản</Link>
+        {" · "}
+        <Link href="/kiem-chung/">Kiểm chứng lịch sử</Link>
       </nav>
       {state.kind === "loading" && <p>Đang tải…</p>}
       {state.kind === "error" && <p role="alert">Không tải được dữ liệu: {state.message}</p>}
