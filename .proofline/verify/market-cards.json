@@ -1,0 +1,91 @@
+{
+  "spec": "market-cards",
+  "repo": "macroeconomics",
+  "base_ref": "main",
+  "base_sha": "595b345e8f8452a3c33df2327edf5c715f3a0c0d",
+  "head_sha": "a02fde7b69ae258b74266fef21b5b10cdd0fd385",
+  "runs": 2,
+  "gates": [
+    {
+      "key": "acceptance_unchanged",
+      "status": "pass",
+      "detail": "journey đúng bản đã duyệt (07e0aa5)",
+      "evidence": {
+        "blob": "07e0aa59487da64056286df7ef4abd1abb406703"
+      }
+    },
+    {
+      "key": "test_integrity",
+      "status": "pass",
+      "detail": "không sửa/xóa test cũ, không thêm skip",
+      "evidence": {}
+    },
+    {
+      "key": "new_tests_added",
+      "status": "pass",
+      "detail": "1 file test mới: tests/test_market.py",
+      "evidence": {
+        "added": [
+          "tests/test_market.py"
+        ]
+      }
+    },
+    {
+      "key": "acceptance_fails_before",
+      "status": "pass",
+      "detail": "2/2 test của journey fail ở khẳng định trên base",
+      "evidence": {
+        "attempts": [
+          {
+            "outcome": "assertion",
+            "detail": "2/2"
+          }
+        ],
+        "failed": [
+          "tests.journeys.test_market_cards::test_vnindex_and_turnover_cards[chromium]",
+          "tests.journeys.test_market_cards::test_vnindex_keeps_last_value_when_openstock_fails[chromium]"
+        ]
+      }
+    },
+    {
+      "key": "acceptance_passes_after",
+      "status": "pass",
+      "detail": "2/2 test của journey pass",
+      "evidence": {}
+    },
+    {
+      "key": "no_regression",
+      "status": "pass",
+      "detail": "không test nào xấu đi so với base · base: 0, 0 fail · nhánh: 0, 0 fail (theo lượt)",
+      "evidence": {
+        "consistent": [],
+        "unstable": [],
+        "pre_existing": [],
+        "new_tests_failing": [],
+        "base": {
+          "failed_per_run": [
+            0,
+            0
+          ],
+          "always_failing": [],
+          "unstable": []
+        }
+      }
+    },
+    {
+      "key": "static_typecheck",
+      "status": "pass",
+      "detail": "'uv run mypy && pnpm --dir web typecheck' sạch trên nhánh",
+      "evidence": {}
+    },
+    {
+      "key": "static_lint",
+      "status": "pass",
+      "detail": "'uv run ruff check . && uv run ruff format --check .' sạch trên nhánh",
+      "evidence": {}
+    }
+  ],
+  "verified_at": "2026-10-27T03:35:39+00:00",
+  "installed": true,
+  "status": "pass"
+}
