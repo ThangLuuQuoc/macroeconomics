@@ -1,0 +1,9 @@
+name: overview-dashboard
+task_type: feature
+spec: overview-dashboard.md
+base: main
+journey: tests/journeys/test_overview_dashboard.py
+journey_approvals:
+- blob: 9ecfd345ec499ef198876ab94b9d67ee5cf4ab17
+  approved_at: '2026-10-27T02:38:21+00:00'
+  note: 'v1: chủ dự án duyệt spec + journey; đồng ý định dạng số kiểu Việt Nam'
