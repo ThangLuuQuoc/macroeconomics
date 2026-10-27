@@ -9,13 +9,14 @@ from __future__ import annotations
 from collections import defaultdict
 from dataclasses import dataclass
 from datetime import date, datetime
+from typing import Literal
 from zoneinfo import ZoneInfo
 
 import psycopg
 from pydantic import BaseModel
 
 from macro.changes import ChangeKind, change, previous_period, same_period_last_year
-from macro.connectors import SOURCE_LABELS
+from macro.connectors import SHOW_SERIES_CODE, SOURCE_LABELS
 from macro.numbers import vn_number, vn_signed
 from macro.series import DISPLAYABLE
 
@@ -40,7 +41,7 @@ class Display:
     decimals: int
     suffix: str = ""
     scale: float = 1.0  # vd 1/1000: triệu USD → tỷ USD
-    change: ChangeKind = "percent"
+    change: ChangeKind | Literal["points_percent"] = "percent"
     points_unit: str = "điểm %"
     prev_label: str | None = None  # Mặc định theo tần suất
 
@@ -57,6 +58,8 @@ DISPLAY: dict[str, Display] = {
     "vn.refinance_rate": Display(
         2, "%/năm", change="points", prev_label="so với lần điều chỉnh trước"
     ),
+    "vn.vnindex": Display(2, change="points_percent", points_unit="điểm"),
+    "vn.hose_turnover": Display(1, " nghìn tỷ đồng", scale=1e-12),
     "us.ust10y": Display(2, "%", change="points"),
     "us.usd_broad": Display(2),
     "global.brent": Display(2, " USD/thùng"),
@@ -82,7 +85,16 @@ def period_text(frequency: str, period: date) -> str:
     return f"{period.day:02d}/{period.month:02d}/{period.year}"
 
 
-def change_text(display: Display, value: float | None, label: str) -> str | None:
+def change_text(display: Display, current: float, previous: float | None, label: str) -> str | None:
+    if previous is None:
+        return None
+    if display.change == "points_percent":
+        points = change("points", current, previous)
+        percent = change("percent", current, previous)
+        assert points is not None
+        pct = f" ({vn_signed(percent, 2)}%)" if percent is not None else ""
+        return f"{vn_signed(points, display.decimals)} {display.points_unit}{pct} {label}"
+    value = change(display.change, current, previous)
     if value is None:
         return None
     if display.change == "points":
@@ -96,7 +108,9 @@ def value_text(display: Display, value: float) -> str:
 
 def source_text(connector: str, source_series_id: str | None) -> str:
     label = SOURCE_LABELS.get(connector, connector)
-    return f"{label} · {source_series_id}" if connector == "fred" and source_series_id else label
+    if connector in SHOW_SERIES_CODE and source_series_id:
+        return f"{label} · {source_series_id}"
+    return label
 
 
 def _local(moment: datetime) -> str:
@@ -140,14 +154,10 @@ def build_cards(conn: psycopg.Connection[dict]) -> list[IndicatorCard]:
                 value_text=value_text(display, current),
                 period_text=period_text(frequency, latest),
                 change_prev_text=change_text(
-                    display,
-                    change(display.change, current, series_values[prev]) if prev else None,
-                    prev_label,
+                    display, current, series_values[prev] if prev else None, prev_label
                 ),
                 change_yoy_text=change_text(
-                    display,
-                    change(display.change, current, series_values[yoy]) if yoy else None,
-                    "so với cùng kỳ",
+                    display, current, series_values[yoy] if yoy else None, "so với cùng kỳ"
                 ),
                 source_text=source_text(row["connector"], row["source_series_id"]),
                 status_text=_status(runs.get(row["connector"]), period_text(frequency, latest)),

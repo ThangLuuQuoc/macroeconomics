@@ -1,0 +1,92 @@
+{
+  "spec": "overview-dashboard",
+  "repo": "macroeconomics",
+  "base_ref": "main",
+  "base_sha": "95e248748ae7a5d353dbd3efa642ee231fb77149",
+  "head_sha": "595b345e8f8452a3c33df2327edf5c715f3a0c0d",
+  "runs": 2,
+  "gates": [
+    {
+      "key": "acceptance_unchanged",
+      "status": "pass",
+      "detail": "journey đúng bản đã duyệt (9ecfd34)",
+      "evidence": {
+        "blob": "9ecfd345ec499ef198876ab94b9d67ee5cf4ab17"
+      }
+    },
+    {
+      "key": "test_integrity",
+      "status": "pass",
+      "detail": "không sửa/xóa test cũ, không thêm skip",
+      "evidence": {}
+    },
+    {
+      "key": "new_tests_added",
+      "status": "pass",
+      "detail": "1 file test mới: tests/test_overview.py",
+      "evidence": {
+        "added": [
+          "tests/test_overview.py"
+        ]
+      }
+    },
+    {
+      "key": "acceptance_fails_before",
+      "status": "pass",
+      "detail": "3/3 test của journey fail ở khẳng định trên base",
+      "evidence": {
+        "attempts": [
+          {
+            "outcome": "assertion",
+            "detail": "3/3"
+          }
+        ],
+        "failed": [
+          "tests.journeys.test_overview_dashboard::test_cards_show_latest_value_period_and_source[chromium]",
+          "tests.journeys.test_overview_dashboard::test_changes_vs_previous_and_same_period_without_guessing[chromium]",
+          "tests.journeys.test_overview_dashboard::test_failed_source_keeps_last_value_and_says_so[chromium]"
+        ]
+      }
+    },
+    {
+      "key": "acceptance_passes_after",
+      "status": "pass",
+      "detail": "3/3 test của journey pass",
+      "evidence": {}
+    },
+    {
+      "key": "no_regression",
+      "status": "pass",
+      "detail": "không test nào xấu đi so với base · base: 0, 0 fail · nhánh: 0, 0 fail (theo lượt)",
+      "evidence": {
+        "consistent": [],
+        "unstable": [],
+        "pre_existing": [],
+        "new_tests_failing": [],
+        "base": {
+          "failed_per_run": [
+            0,
+            0
+          ],
+          "always_failing": [],
+          "unstable": []
+        }
+      }
+    },
+    {
+      "key": "static_typecheck",
+      "status": "pass",
+      "detail": "'uv run mypy && pnpm --dir web typecheck' sạch trên nhánh",
+      "evidence": {}
+    },
+    {
+      "key": "static_lint",
+      "status": "pass",
+      "detail": "'uv run ruff check . && uv run ruff format --check .' sạch trên nhánh",
+      "evidence": {}
+    }
+  ],
+  "verified_at": "2026-10-27T03:19:44+00:00",
+  "installed": true,
+  "status": "pass"
+}
