@@ -1,6 +1,6 @@
 # ADR-001: Stack và cấu trúc của walking skeleton
 
-- **Trạng thái:** đề xuất, chờ chủ dự án duyệt cùng PR walking skeleton
+- **Trạng thái:** đã duyệt (chủ dự án, 2026-10-27)
 - **Ngày:** 2026-10-27
 - **Liên quan:** `.proofline/interview.md`, `.proofline/data-sources.md`, `.proofline/specs/overview-dashboard.md`
 
