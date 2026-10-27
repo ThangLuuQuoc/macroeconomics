@@ -1,0 +1,9 @@
+name: scenario-simulation
+task_type: feature
+spec: scenario-simulation.md
+base: main
+journey: tests/journeys/test_scenario_simulation.py
+journey_approvals:
+- blob: 510861d0739f151199a56e40f09b4d5bab4f72cc
+  approved_at: '2026-10-27T04:00:27+00:00'
+  note: 'v1: chủ dự án duyệt spec + journey; đồng ý thêm statsmodels'
