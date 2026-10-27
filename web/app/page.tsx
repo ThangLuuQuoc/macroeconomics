@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { IndicatorCardView } from "./IndicatorCardView";
@@ -26,6 +27,9 @@ export default function OverviewPage() {
   return (
     <main>
       <h1>Tổng quan vĩ mô</h1>
+      <nav className="nav">
+        <Link href="/kich-ban/">Giả lập kịch bản</Link>
+      </nav>
       {state.kind === "loading" && <p>Đang tải…</p>}
       {state.kind === "error" && <p role="alert">Không tải được dữ liệu: {state.message}</p>}
       {state.kind === "ready" && state.cards.length === 0 && (

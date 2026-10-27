@@ -71,14 +71,13 @@ class PinkSheetConnector:
         if SHEET not in workbook.sheetnames:
             raise SourceError(f"{FILENAME}: không có sheet '{SHEET}'")
         rows = list(workbook[SHEET].iter_rows(values_only=True))
-        header = next((row for row in rows if "Crude oil, Brent" in row), None)
+        wanted = {item.id: item.source_series_id for item in SERIES}
+        header = next((row for row in rows if any(c in row for c in wanted.values())), None)
         if header is None:
-            raise SourceError(f"{FILENAME}: không thấy dòng tên cột")
-        columns = {}
-        for item in SERIES:
-            if item.source_series_id not in header:
-                raise SourceError(f"{FILENAME}: không có cột '{item.source_series_id}'")
-            columns[item.id] = header.index(item.source_series_id)
+            names = ", ".join(f"'{c}'" for c in wanted.values())
+            raise SourceError(f"{FILENAME}: không có cột nào trong {names}")
+        # Chỉ đọc các cột có mặt; cột vắng thì chuỗi đó không có số mới (số cũ vẫn giữ).
+        columns = {sid: header.index(col) for sid, col in wanted.items() if col in header}
         observations = []
         for row in rows:
             match = PERIOD.match(str(row[0] or ""))

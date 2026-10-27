@@ -82,6 +82,13 @@ SERIES = [
         "yoy",
         10,
         "cpi.CPI",
+        status=SeriesStatus.PARTIAL,
+        definition=(
+            "Không cùng định nghĩa theo thời gian: từ 2025 là CPI tháng so cùng kỳ (01-03/2025"
+            " khớp IMF); 2021-2024 phần lớn là CPI bình quân từ đầu năm so cùng kỳ (tháng 12 trùng"
+            " lạm phát bình quân cả năm). Mô hình dùng chuỗi nối với IMF"
+            " (spec scenario-simulation)."
+        ),
     ),
     _series(
         "vn.exports",

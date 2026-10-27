@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from macro.connectors.base import Connector, Observation, SourceError
 from macro.connectors.dautubenvung import DautubenvungConnector
+from macro.connectors.dbnomics import DbnomicsConnector
 from macro.connectors.fred import FredConnector
 from macro.connectors.openstock import OpenstockConnector
 from macro.connectors.wb_pinksheet import PinkSheetConnector
@@ -16,6 +17,7 @@ CONNECTORS: list[Connector] = [
     FredConnector(),
     PinkSheetConnector(),
     OpenstockConnector(),
+    DbnomicsConnector(),
 ]
 
 # Tên nguồn hiển thị trên giao diện, theo connector.
@@ -24,6 +26,7 @@ SOURCE_LABELS = {
     "fred": "FRED",
     "wb_pinksheet": "World Bank Pink Sheet",
     "openstock": "openstock",
+    "dbnomics": "IMF qua DBnomics",
 }
 
 # Connector có mã chuỗi riêng cho từng chỉ số: hiện kèm mã, vd "FRED · DGS10".
