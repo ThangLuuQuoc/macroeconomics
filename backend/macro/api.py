@@ -5,28 +5,10 @@ from __future__ import annotations
 from fastapi import FastAPI
 from fastapi.responses import PlainTextResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
 
 from macro.config import Settings, load_settings
+from macro.dashboard import IndicatorCard, build_cards
 from macro.db import connect, init_schema
-
-
-class IndicatorCard(BaseModel):
-    """Một thẻ trên bảng tổng quan. Mọi con số đã được tính và định dạng sẵn ở backend."""
-
-    series_id: str
-    name: str
-    value_text: str
-    period_text: str
-    change_prev_text: str | None = None
-    change_yoy_text: str | None = None
-    source_text: str
-    status_text: str | None = None  # vd "Nguồn lỗi · …" (T-4); None khi nguồn bình thường
-
-
-def build_cards(settings: Settings) -> list[IndicatorCard]:
-    """Các thẻ của bảng tổng quan (tính năng overview-dashboard, chưa làm)."""
-    return []
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -44,7 +26,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @app.get("/api/indicators")
     def indicators() -> list[IndicatorCard]:
-        return build_cards(settings)
+        with connect(settings.database_url) as conn:
+            return build_cards(conn)
 
     if settings.web_dir.is_dir():
         app.mount("/", StaticFiles(directory=settings.web_dir, html=True), name="web")
