@@ -1,0 +1,30 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: macro
+      POSTGRES_PASSWORD: macro
+      POSTGRES_DB: macro
+    ports:
+      - "5544:5432" # Cổng máy 5544 để không đụng các Postgres khác trên máy
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U macro -d macro"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  app:
+    build: .
+    profiles: ["app"]
+    environment:
+      MACRO_DATABASE_URL: postgresql://macro:macro@db:5432/macro
+    ports:
+      - "8070:8070"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:

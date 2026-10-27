@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: macro
+          POSTGRES_PASSWORD: macro
+          POSTGRES_DB: macro
+        ports:
+          - 5544:5432
+        options: >-
+          --health-cmd "pg_isready -U macro -d macro"
+          --health-interval 5s --health-timeout 3s --health-retries 20
+    env:
+      MACRO_TEST_DATABASE_URL: postgresql://macro:macro@localhost:5544/postgres
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
+      - run: pnpm --dir web install --frozen-lockfile
+      - run: pnpm --dir web build
+      - run: pnpm --dir web typecheck
+      - run: uv sync --locked
+      - run: uv run playwright install --with-deps chromium
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+      - run: uv run mypy
+      - run: uv run pytest -q

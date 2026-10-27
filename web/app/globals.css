@@ -1,0 +1,75 @@
+:root {
+  --bg: #f7f7f5;
+  --fg: #1d1d1b;
+  --muted: #6b6b66;
+  --card: #ffffff;
+  --border: #e3e3de;
+  --warn: #b45309;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #141413;
+    --fg: #ececea;
+    --muted: #a3a39d;
+    --card: #1e1e1c;
+    --border: #33332f;
+    --warn: #f59e0b;
+  }
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 16px;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 16px;
+}
+
+.card-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin: 0 0 8px;
+}
+
+.card-value {
+  font-size: 1.6rem;
+  font-variant-numeric: tabular-nums;
+  margin: 0;
+}
+
+.card-period,
+.card-change,
+.card-source {
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin: 4px 0 0;
+}
+
+.card-status {
+  color: var(--warn);
+  font-size: 0.85rem;
+  margin: 4px 0 0;
+}
+
+.card-status:empty {
+  display: none;
+}
