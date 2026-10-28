@@ -1,0 +1,109 @@
+{
+  "spec": "synthetic-data",
+  "repo": "macroeconomics",
+  "base_ref": "main",
+  "base_sha": "134c59f6046a8688cfaa57c72f0a6f743d5138b4",
+  "head_sha": "51acf343a73004799afd0f486168703099bfcecb",
+  "runs": 2,
+  "gates": [
+    {
+      "key": "commands_approved",
+      "status": "pass",
+      "detail": "lệnh kiểm tra đúng bản người đã duyệt (e11b6b9, 2026-10-28)",
+      "evidence": {
+        "fingerprint": "e11b6b99bdf1b09f",
+        "approved": "e11b6b99bdf1b09f",
+        "decision_id": "8beaf570f60145b69890ea209f81cff6"
+      }
+    },
+    {
+      "key": "acceptance_unchanged",
+      "status": "pass",
+      "detail": "journey đúng bản người đã duyệt (176cf1f, qua terminal, 2026-10-28)",
+      "evidence": {
+        "blob": "176cf1f89e3fa350d2a77348f7a38530e6c82754",
+        "decision_id": "fafb8f613a4d4ba692673adcea43c73e",
+        "via": "terminal"
+      }
+    },
+    {
+      "key": "test_integrity",
+      "status": "pass",
+      "detail": "không sửa/xóa test cũ, không thêm skip",
+      "evidence": {}
+    },
+    {
+      "key": "new_tests_added",
+      "status": "pass",
+      "detail": "1 file test mới: tests/test_synthetic.py",
+      "evidence": {
+        "added": [
+          "tests/test_synthetic.py"
+        ]
+      }
+    },
+    {
+      "key": "acceptance_fails_before",
+      "status": "pass",
+      "detail": "7/7 test của journey fail ở khẳng định trên base",
+      "evidence": {
+        "attempts": [
+          {
+            "outcome": "assertion",
+            "detail": "7/7"
+          }
+        ],
+        "failed": [
+          "tests.journeys.test_synthetic_data::test_switch_to_synthetic_and_back_without_touching_real_data[chromium]",
+          "tests.journeys.test_synthetic_data::test_real_database_never_gets_synthetic_runs[chromium]",
+          "tests.journeys.test_synthetic_data::test_each_browser_keeps_its_own_mode[chromium]",
+          "tests.journeys.test_synthetic_data::test_model_recovers_planted_effects_on_baseline[chromium]",
+          "tests.journeys.test_synthetic_data::test_cpi_splice_failure_missing_data_and_source_failure[chromium]",
+          "tests.journeys.test_synthetic_data::test_same_seed_same_numbers_and_no_mixing_with_real_data",
+          "tests.journeys.test_synthetic_data::test_recovery_metric_meets_threshold_and_catches_a_wrong_answer"
+        ]
+      }
+    },
+    {
+      "key": "acceptance_passes_after",
+      "status": "pass",
+      "detail": "7/7 test của journey pass",
+      "evidence": {}
+    },
+    {
+      "key": "no_regression",
+      "status": "pass",
+      "detail": "không test nào xấu đi so với base · base: 0, 0 fail · nhánh: 0, 0 fail (theo lượt)",
+      "evidence": {
+        "consistent": [],
+        "unstable": [],
+        "pre_existing": [],
+        "new_tests_failing": [],
+        "base": {
+          "failed_per_run": [
+            0,
+            0
+          ],
+          "always_failing": [],
+          "unstable": []
+        }
+      }
+    },
+    {
+      "key": "static_typecheck",
+      "status": "pass",
+      "detail": "'uv run mypy && pnpm --dir web typecheck' sạch trên nhánh",
+      "evidence": {}
+    },
+    {
+      "key": "static_lint",
+      "status": "pass",
+      "detail": "'uv run ruff check . && uv run ruff format --check .' sạch trên nhánh",
+      "evidence": {}
+    }
+  ],
+  "verified_at": "2026-10-28T08:31:27+00:00",
+  "installed": true,
+  "task_type": "feature",
+  "status": "pass"
+}
