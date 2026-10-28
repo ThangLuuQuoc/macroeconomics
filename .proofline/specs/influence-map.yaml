@@ -1,0 +1,15 @@
+name: influence-map
+task_type: feature
+spec: influence-map.md
+base: main
+journey: tests/journeys/test_influence_map.py
+kind: ''
+metrics: []
+journey_approvals:
+- blob: 5e0a8212c28be79045dd9c13df8bf7c301271d8c
+  approved_at: '2026-10-28T08:59:19+00:00'
+  note: ''
+  decision_id: cf7a3fcb5a6e4a8c8e3ebd4fbbe7fa94
+  via: terminal
+  metrics: ''
+  metric_files: {}

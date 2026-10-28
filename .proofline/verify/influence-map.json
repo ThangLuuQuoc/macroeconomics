@@ -1,0 +1,105 @@
+{
+  "spec": "influence-map",
+  "repo": "macroeconomics",
+  "base_ref": "main",
+  "base_sha": "1e173a02bc337c09ab761f4f53f576523b3f7051",
+  "head_sha": "eea2a13b2dd93b193225eff49aa580b788cc4ade",
+  "runs": 2,
+  "gates": [
+    {
+      "key": "commands_approved",
+      "status": "pass",
+      "detail": "lệnh kiểm tra đúng bản người đã duyệt (e11b6b9, 2026-10-28)",
+      "evidence": {
+        "fingerprint": "e11b6b99bdf1b09f",
+        "approved": "e11b6b99bdf1b09f",
+        "decision_id": "8beaf570f60145b69890ea209f81cff6"
+      }
+    },
+    {
+      "key": "acceptance_unchanged",
+      "status": "pass",
+      "detail": "journey đúng bản người đã duyệt (5e0a821, qua terminal, 2026-10-28)",
+      "evidence": {
+        "blob": "5e0a8212c28be79045dd9c13df8bf7c301271d8c",
+        "decision_id": "cf7a3fcb5a6e4a8c8e3ebd4fbbe7fa94",
+        "via": "terminal"
+      }
+    },
+    {
+      "key": "test_integrity",
+      "status": "pass",
+      "detail": "không sửa/xóa test cũ, không thêm skip",
+      "evidence": {}
+    },
+    {
+      "key": "new_tests_added",
+      "status": "pass",
+      "detail": "1 file test mới: tests/test_influence.py",
+      "evidence": {
+        "added": [
+          "tests/test_influence.py"
+        ]
+      }
+    },
+    {
+      "key": "acceptance_fails_before",
+      "status": "pass",
+      "detail": "3/3 test của journey fail ở khẳng định trên base",
+      "evidence": {
+        "attempts": [
+          {
+            "outcome": "assertion",
+            "detail": "3/3"
+          }
+        ],
+        "failed": [
+          "tests.journeys.test_influence_map::test_bubbles_show_push_and_pull_on_the_centre[chromium]",
+          "tests.journeys.test_influence_map::test_map_fits_a_phone_screen[chromium]",
+          "tests.journeys.test_influence_map::test_real_data_shows_only_factors_that_have_data[chromium]"
+        ]
+      }
+    },
+    {
+      "key": "acceptance_passes_after",
+      "status": "pass",
+      "detail": "3/3 test của journey pass",
+      "evidence": {}
+    },
+    {
+      "key": "no_regression",
+      "status": "pass",
+      "detail": "không test nào xấu đi so với base · base: 0, 0 fail · nhánh: 0, 0 fail (theo lượt)",
+      "evidence": {
+        "consistent": [],
+        "unstable": [],
+        "pre_existing": [],
+        "new_tests_failing": [],
+        "base": {
+          "failed_per_run": [
+            0,
+            0
+          ],
+          "always_failing": [],
+          "unstable": []
+        }
+      }
+    },
+    {
+      "key": "static_typecheck",
+      "status": "pass",
+      "detail": "'uv run mypy && pnpm --dir web typecheck' sạch trên nhánh",
+      "evidence": {}
+    },
+    {
+      "key": "static_lint",
+      "status": "pass",
+      "detail": "'uv run ruff check . && uv run ruff format --check .' sạch trên nhánh",
+      "evidence": {}
+    }
+  ],
+  "verified_at": "2026-10-28T09:18:10+00:00",
+  "installed": true,
+  "task_type": "feature",
+  "status": "pass"
+}

@@ -5,6 +5,9 @@
   --card: #ffffff;
   --border: #e3e3de;
   --warn: #b45309;
+  --push: #2563eb; /* đẩy lên (xanh dương) */
+  --pull: #ea580c; /* kéo xuống (cam) */
+  --unsure: #9ca3af;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -15,6 +18,9 @@
     --card: #1e1e1c;
     --border: #33332f;
     --warn: #f59e0b;
+    --push: #60a5fa;
+    --pull: #fb923c;
+    --unsure: #6b7280;
   }
 }
 
@@ -152,4 +158,234 @@ a {
 .no-real-data {
   color: var(--muted);
   font-size: 0.9rem;
+}
+
+/* Bản đồ ảnh hưởng (spec influence-map): màu theo tác động lên trung tâm, luôn kèm chữ. */
+.influence-controls {
+  margin: 8px 0;
+}
+
+.center-summary {
+  margin: 8px 0 4px;
+}
+
+.influence-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: 16px;
+  align-items: start;
+}
+
+@media (max-width: 760px) {
+  .influence-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.influence-map {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.influence-map text {
+  fill: var(--fg);
+  font-family: inherit;
+}
+
+.influence-map .group-label {
+  fill: var(--muted);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.center-bubble {
+  fill: var(--card);
+  stroke: var(--fg);
+  stroke-width: 2;
+}
+
+.center-name {
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.center-change {
+  font-size: 13px;
+}
+
+.link {
+  stroke: var(--unsure);
+}
+
+.link.effect-up {
+  stroke: var(--push);
+}
+
+.link.effect-down {
+  stroke: var(--pull);
+}
+
+.bubble {
+  cursor: pointer;
+}
+
+.bubble circle {
+  fill-opacity: 0.85;
+  stroke-width: 2;
+}
+
+.bubble.effect-up circle {
+  fill: var(--push);
+  stroke: var(--push);
+}
+
+.bubble.effect-down circle {
+  fill: var(--pull);
+  stroke: var(--pull);
+}
+
+.bubble.effect-uncertain circle {
+  fill: var(--unsure);
+  fill-opacity: 0.35;
+  stroke: var(--unsure);
+  stroke-dasharray: 4 3;
+}
+
+.bubble.effect-missing circle {
+  fill: none;
+  stroke: var(--unsure);
+  stroke-dasharray: 2 3;
+}
+
+.bubble.selected circle {
+  stroke: var(--fg);
+  stroke-width: 3;
+}
+
+.influence-map .bubble-value {
+  font-size: 12px;
+  font-weight: 600;
+  fill: #fff;
+  paint-order: stroke;
+  stroke: rgba(0, 0, 0, 0.35);
+  stroke-width: 2px;
+}
+
+.bubble.effect-uncertain .bubble-value,
+.bubble.effect-missing .bubble-value {
+  fill: var(--fg);
+  stroke: none;
+}
+
+@media (max-width: 520px) {
+  /* SVG thu nhỏ còn ~60%: chữ to hơn, bỏ dòng chi tiết (đã có ở bảng xếp hạng và khi trỏ vào) */
+  .influence-map .bubble-name {
+    font-size: 18px !important;
+  }
+
+  .influence-map .bubble-value {
+    font-size: 16px !important;
+  }
+
+  .influence-map .bubble-detail {
+    display: none;
+  }
+}
+
+.influence-map .bubble-name {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.influence-map .bubble-detail {
+  font-size: 10.5px;
+  fill: var(--muted);
+}
+
+.legend {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  vertical-align: middle;
+}
+
+.swatch.effect-up {
+  background: var(--push);
+}
+
+.swatch.effect-down {
+  background: var(--pull);
+}
+
+.swatch.effect-uncertain {
+  background: var(--unsure);
+}
+
+.ranking {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0;
+}
+
+.ranking li {
+  display: grid;
+  grid-template-columns: minmax(0, 9em) minmax(0, 1fr) 4.5em;
+  gap: 8px;
+  align-items: center;
+  font-size: 0.85rem;
+  padding: 2px 0;
+}
+
+.rank-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rank-bar {
+  position: relative;
+  height: 10px;
+  background: var(--border);
+  border-radius: 2px;
+}
+
+.rank-fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: var(--unsure);
+  border-radius: 2px;
+}
+
+.ranking .effect-up .rank-fill {
+  background: var(--push);
+}
+
+.ranking .effect-down .rank-fill {
+  background: var(--pull);
+}
+
+.rank-value {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.simulate {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+
+.simulate h2 {
+  font-size: 1rem;
+  margin: 0 0 6px;
 }

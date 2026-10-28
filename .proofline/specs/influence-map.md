@@ -1,6 +1,6 @@
 # Spec (nháp): Bản đồ ảnh hưởng dạng bong bóng
 
-> Tính năng thứ bảy, **làm sau `synthetic-data`** (journey chạy trên dữ liệu giả lập). Trạng thái: **nháp, đã chốt câu hỏi mở** (2026-10-28), chưa có acceptance journey.
+> Tính năng thứ bảy, **làm sau `synthetic-data`** (journey chạy trên dữ liệu giả lập). Trạng thái: **chờ duyệt** spec và acceptance journey (`tests/journeys/test_influence_map.py`, 2026-10-28).
 > Liên quan: [`synthetic-data.md`](synthetic-data.md), [`scenario-simulation.md`](scenario-simulation.md), [`backtest.md`](backtest.md), [`multi-shock-model.md`](multi-shock-model.md).
 
 ## 1. Vấn đề
@@ -21,8 +21,8 @@ Trên dữ liệu giả lập `baseline` có đủ 9 yếu tố; ở chế độ
 
 Với tháng đang xem `m` và yếu tố `s`:
 
-1. **Diễn biến của chính yếu tố:** thay đổi trong 12 tháng (vd `Brent +15%`, `Lãi suất +0,5 điểm %`), hiện bằng mũi tên ▲/▼ và con số.
-2. **Đóng góp ước lượng vào trung tâm:** `đóng góp = Σ_{t=m−11..m} β_{m−t}·x_t` — cùng công thức, cùng hàm ước lượng với trang kiểm chứng (mô hình v1, ước lượng riêng từng yếu tố trên toàn bộ dữ liệu).
+1. **Diễn biến của chính yếu tố:** thay đổi trong 12 tháng theo đơn vị cú sốc, `Σ_{t=m−11..m} x_t` (vd `Brent +15%` là tổng thay đổi log %, `Lãi suất +0,5 điểm %`), hiện bằng mũi tên ▲/▼ và con số.
+2. **Đóng góp ước lượng vào trung tâm:** `đóng góp = Σ_{t=m−11..m−1} β_{m−t}·x_t` — cùng công thức với trang kiểm chứng (mốc cắt `m − 12`, tầm 1..11; cú sốc của chính tháng `m` chưa kịp tác động vì mô hình không có tầm 0), β là phản ứng của trang giả lập với cú sốc 1 đơn vị (ước lượng riêng từng yếu tố trên toàn bộ dữ liệu).
 3. **Màu theo tác động lên trung tâm, không theo hướng của yếu tố:**
    - đóng góp > 0: **xanh dương**, chữ "đẩy lên";
    - đóng góp < 0: **cam**, chữ "kéo xuống";
@@ -48,13 +48,15 @@ Với tháng đang xem `m` và yếu tố `s`:
 
 ## 3. Tiêu chí nghiệm thu dự kiến (chốt khi viết journey)
 
-Kiểm bằng `tests/journeys/test_influence_map.py` trên kịch bản giả lập `influence-demo` (thêm vào `backend/macro/synthetic/scenarios/`), gồm đủ 9 yếu tố và GDP như `baseline`, gài sẵn với trung tâm VN-Index:
+Kiểm bằng `tests/journeys/test_influence_map.py` trên kịch bản giả lập `influence-demo` (`backend/macro/synthetic/scenarios/influence-demo.yaml`, viết cùng journey), gồm đủ 9 yếu tố và GDP như `baseline`, từ 01/1990, gài sẵn với trung tâm VN-Index:
 
-- `vn.vnindex ← global.brent`, β âm; Brent **tăng** trong 12 tháng cuối;
-- `vn.vnindex ← us.usd_broad`, β âm; USD **giảm** trong 12 tháng cuối;
-- `vn.vnindex ← vn.credit_growth`, β dương; tín dụng **tăng** trong 12 tháng cuối;
+- `vn.vnindex ← global.brent`, β = −0,5; Brent **tăng** mạnh (+40, 08/2036);
+- `vn.vnindex ← us.usd_broad`, β = −1,3; USD **giảm** mạnh (−12, 10/2036);
+- `vn.vnindex ← vn.credit_growth`, β = 3; tín dụng **tăng** mạnh (+5, 09/2036);
 - `us.ust10y` không gài quan hệ với VN-Index;
 - không có dữ liệu CPI.
+
+Mỗi cú sốc lớn ở một tháng riêng: cùng tháng thì mô hình từng cặp gán cả bước nhảy của VN-Index cho từng yếu tố (đếm trùng) và ra sai dấu. Đã đo trước khi duyệt, với chính mô hình đang chạy, trên 60 seed: Brent "kéo xuống" 60/60, USD "đẩy lên" 59/60, tín dụng "đẩy lên" 58/60, lợi suất Mỹ "chưa chắc" 53/60 (trần ~90% vì là khoảng tin cậy 90%); seed 42 của kịch bản đạt cả bốn. Journey đọc dấu β từ tệp kịch bản và khẳng định chúng, nên sửa kịch bản làm đổi ý nghĩa thì journey báo.
 
 1. Bật Giả lập, chọn `influence-demo`, từ trang tổng quan vào được `/anh-huong/`; có dải "DỮ LIỆU GIẢ LẬP"; trung tâm mặc định là "Kinh tế Việt Nam" (GDP), vòng ngoài có đủ 9 yếu tố, chia nhóm ngoài nước / trong nước.
 2. Đổi trung tâm sang VN-Index:
@@ -64,20 +66,21 @@ Kiểm bằng `tests/journeys/test_influence_map.py` trên kịch bản giả l�
    - **Lợi suất Mỹ:** "chưa chắc".
 3. Bong bóng có `|đóng góp|` lớn hơn thì bán kính lớn hơn; bảng xếp hạng đúng thứ tự `|đóng góp|`.
 4. Đóng góp của Brent trên trang khớp với công thức ở mục 2 tính lại từ `GET /api/scenario` và dữ liệu (sai lệch ≤ 0,01).
-5. Bấm Brent, kéo độ lớn tới +20%: trung tâm hiện phản ứng sau 12 tháng bằng đúng số của trang giả lập với cùng cú sốc và độ lớn.
+5. Bấm Brent, đặt độ lớn 10%: phản ứng sau 12 tháng (ước lượng và khoảng tin cậy) bằng đúng số của `GET /api/scenario` với cùng cú sốc và độ lớn.
 6. Chọn tháng sớm hơn: các con số đổi theo tháng đó; chọn một tháng năm 2030: GDP trung tâm trong [9%, 15%].
 7. Đổi trung tâm sang CPI: "Chưa đủ dữ liệu cho CPI", không có bong bóng.
-8. Chuyển về **Thật** (bộ số thật nạp sẵn, chỉ 3 yếu tố ngoài nước): trung tâm mặc định VN-Index, chỉ 3 bong bóng, có dòng "Chưa có dữ liệu thật: …".
+8. **Số thật** (bộ số nạp sẵn: PMI, IIP, Brent): trung tâm mặc định VN-Index, báo "Chưa đủ dữ liệu cho VN-Index"; có dòng "Chưa có dữ liệu thật: …"; đổi trung tâm sang PMI thì có đúng 3 bong bóng (3 yếu tố gốc), lợi suất Mỹ "thiếu dữ liệu", Brent có số.
 9. Bề ngang 375 px: không cuộn ngang, đủ 9 bong bóng và bảng xếp hạng.
 
 ## 4. Hợp đồng giao diện
 
 - Link `Bản đồ ảnh hưởng` trên trang tổng quan và trang giả lập.
-- `data-testid=center-select` (chọn trung tâm), `data-testid=month-select`.
+- `data-testid=center-select` (chọn trung tâm), `data-testid=month-select` (giá trị `YYYY-MM`).
 - `data-testid=center` có `data-series`, `data-change`, `data-level`.
 - Mỗi yếu tố: `data-testid=bubble-<series_id>` có `data-scope` (`global` | `domestic`), `data-contribution`, `data-shock-change`, `data-effect` (`up` | `down` | `uncertain` | `missing`), `data-radius`.
 - `data-testid=ranking`, các dòng `data-testid=rank-<series_id>` theo thứ tự.
-- Khung giả lập: `data-testid=simulate-<series_id>`, thanh trượt `data-testid=shock-size`, kết quả `data-testid=simulated-response` có `data-estimate`, `data-lower`, `data-upper`.
+- Khung giả lập: `data-testid=simulate-<series_id>`, ô độ lớn `data-testid=shock-size`, kết quả `data-testid=simulated-response` có `data-size`, `data-estimate`, `data-lower`, `data-upper` (tầm 12).
+- `data-testid=not-additive`: dòng "Ảnh hưởng riêng của từng yếu tố, không cộng lại được."
 - `data-testid=insufficient` khi trung tâm không đủ dữ liệu; `data-testid=no-real-data` (từ `synthetic-data`).
 - API: `GET /api/influence?center=<series_id>&month=YYYY-MM`.
 
