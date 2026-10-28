@@ -1,0 +1,5 @@
+# Như baseline, nhưng hai chuỗi CPI lệch nhau 0,5 điểm % ở đoạn trùng: không nối được.
+extends: baseline
+name: cpi-mismatch
+title: CPI hai nguồn lệch nhau
+cpi: {offset: 0.5}

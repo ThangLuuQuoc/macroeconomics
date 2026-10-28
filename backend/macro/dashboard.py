@@ -64,6 +64,14 @@ DISPLAY: dict[str, Display] = {
     "us.usd_broad": Display(2),
     "global.brent": Display(2, " USD/thùng"),
     "global.gold": Display(0, " USD/ounce"),
+    # Chỉ có trong dữ liệu giả lập (spec synthetic-data mục 2.2) cho tới khi có nguồn thật.
+    "vn.gdp_yoy": Display(2, "%", change="points"),
+    "global.demand": Display(2, "%", change="points"),
+    "vn.policy_rate": Display(2, "%/năm", change="points"),
+    "vn.usdvnd": Display(0, " đồng"),
+    "vn.fdi_yoy": Display(1, "%", change="points"),
+    "vn.credit_growth": Display(2, "%", change="points"),
+    "vn.public_investment": Display(1, "%", change="points"),
 }
 
 PREV_LABELS = {
@@ -106,7 +114,9 @@ def value_text(display: Display, value: float) -> str:
     return vn_number(value * display.scale, display.decimals) + display.suffix
 
 
-def source_text(connector: str, source_series_id: str | None) -> str:
+def source_text(connector: str, source_series_id: str | None, provider: str = "") -> str:
+    if connector == "synthetic":  # nhãn có tên kịch bản, vd "Giả lập (baseline)"
+        return provider or SOURCE_LABELS["synthetic"]
     label = SOURCE_LABELS.get(connector, connector)
     if connector in SHOW_SERIES_CODE and source_series_id:
         return f"{label} · {source_series_id}"
@@ -119,7 +129,7 @@ def _local(moment: datetime) -> str:
 
 def build_cards(conn: psycopg.Connection[dict]) -> list[IndicatorCard]:
     series_rows = conn.execute(
-        "SELECT id, name, connector, source_series_id, frequency FROM series"
+        "SELECT id, name, connector, source_series_id, upstream_provider, frequency FROM series"
         " WHERE status = ANY(%s) ORDER BY display_order, id",
         ([str(s) for s in DISPLAYABLE],),
     ).fetchall()
@@ -159,7 +169,9 @@ def build_cards(conn: psycopg.Connection[dict]) -> list[IndicatorCard]:
                 change_yoy_text=change_text(
                     display, current, series_values[yoy] if yoy else None, "so với cùng kỳ"
                 ),
-                source_text=source_text(row["connector"], row["source_series_id"]),
+                source_text=source_text(
+                    row["connector"], row["source_series_id"], row["upstream_provider"]
+                ),
                 status_text=_status(runs.get(row["connector"]), period_text(frequency, latest)),
             )
         )

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 // Kết quả của /api/scenario; mọi số đã được tính và định dạng ở backend (ADR-001).
 type Horizon = {
@@ -31,20 +31,38 @@ type ScenarioResult = {
   outcomes: OutcomeResult[];
 };
 
-const SHOCKS = [
-  { id: "global.brent", name: "Giá dầu Brent", unit: "%", size: "20" },
-  { id: "us.ust10y", name: "Lợi suất trái phiếu Mỹ 10 năm", unit: "điểm %", size: "0.5" },
-  { id: "us.usd_broad", name: "Chỉ số USD rộng (Fed)", unit: "%", size: "5" },
-];
+// /api/scenario/shocks: các yếu tố dùng được trên dữ liệu đang xem (spec synthetic-data mục 2.2).
+type ShockOption = { id: string; name: string; unit: string; default_size: number; scope: string };
+type ShockList = { shocks: ShockOption[]; no_real_data: string[] };
+
+const sizeText = (value: number) => String(value);
 
 export default function ScenarioPage() {
-  const [shock, setShock] = useState(SHOCKS[0].id);
-  const [size, setSize] = useState(SHOCKS[0].size);
+  const [shocks, setShocks] = useState<ShockList | null>(null);
+  const [shock, setShock] = useState("");
+  const [size, setSize] = useState("");
   const [result, setResult] = useState<ScenarioResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const unit = SHOCKS.find((s) => s.id === shock)?.unit ?? "";
+  useEffect(() => {
+    fetch("/api/scenario/shocks")
+      .then((res) => {
+        if (!res.ok) throw new Error(`API trả về ${res.status}`);
+        return res.json() as Promise<ShockList>;
+      })
+      .then((list) => {
+        setShocks(list);
+        if (list.shocks.length > 0) {
+          setShock(list.shocks[0].id);
+          setSize(sizeText(list.shocks[0].default_size));
+        }
+      })
+      .catch((err: unknown) => setError(String(err)));
+  }, []);
+
+  const options = shocks?.shocks ?? [];
+  const unit = options.find((s) => s.id === shock)?.unit ?? "";
 
   function run() {
     setLoading(true);
@@ -72,6 +90,13 @@ export default function ScenarioPage() {
         không phải dự báo.
       </p>
 
+      {shocks && shocks.no_real_data.length > 0 && (
+        <p className="no-real-data" data-testid="no-real-data">
+          Chưa có dữ liệu thật: {shocks.no_real_data.join(", ")}.
+        </p>
+      )}
+
+      {shocks && (
       <form
         className="scenario-form"
         onSubmit={(event) => {
@@ -86,10 +111,11 @@ export default function ScenarioPage() {
             value={shock}
             onChange={(event) => {
               setShock(event.target.value);
-              setSize(SHOCKS.find((s) => s.id === event.target.value)?.size ?? "");
+              const picked = options.find((s) => s.id === event.target.value);
+              setSize(picked ? sizeText(picked.default_size) : "");
             }}
           >
-            {SHOCKS.map((s) => (
+            {options.map((s) => (
               <option key={s.id} value={s.id}>
                 {s.name}
               </option>
@@ -111,6 +137,7 @@ export default function ScenarioPage() {
           Giả lập
         </button>
       </form>
+      )}
 
       {error && <p role="alert">Không giả lập được: {error}</p>}
 

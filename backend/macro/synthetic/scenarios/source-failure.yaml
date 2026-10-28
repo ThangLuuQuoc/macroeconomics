@@ -1,0 +1,5 @@
+# Như baseline, nhưng lần lấy thứ hai lỗi: giữ số cũ, báo rõ (T-4).
+extends: baseline
+name: source-failure
+title: Nguồn lỗi ở lần lấy sau
+source_failure: true

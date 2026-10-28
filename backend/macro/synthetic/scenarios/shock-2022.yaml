@@ -1,0 +1,8 @@
+# Như baseline, thêm dầu, lãi suất Mỹ và USD cùng tăng mạnh năm 2022.
+extends: baseline
+name: shock-2022
+title: Cú sốc kép 2022 — dầu, lãi suất Mỹ, USD
+events:
+  - {series: global.brent, period: 2022-03, add: 25}
+  - {series: us.ust10y, period: 2022-05, add: 0.8}
+  - {series: us.usd_broad, period: 2022-07, add: 4}

@@ -14,6 +14,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import date
+from typing import Literal
 
 import numpy as np
 import pandas as pd
@@ -39,6 +40,10 @@ class Shock:
     unit: str  # đơn vị độ lớn cú sốc
     default_size: float
     transform: Callable[[pd.Series], pd.Series]  # chuỗi tháng → x_t
+    scope: Literal["global", "domestic"] = "global"
+    # Yếu tố gốc luôn được liệt kê (thiếu dữ liệu thì nói thẳng); yếu tố mở rộng (spec
+    # synthetic-data mục 2.2) chỉ dùng khi database đang xem có dữ liệu của nó.
+    core: bool = True
 
 
 @dataclass(frozen=True)
@@ -52,16 +57,61 @@ def _log_change(monthly: pd.Series) -> pd.Series:
     return 100 * np.log(monthly).diff()
 
 
+def _diff(monthly: pd.Series) -> pd.Series:
+    return monthly.diff()
+
+
 SHOCKS = {
     s.series_id: s
     for s in [
         Shock("global.brent", "Giá dầu Brent", "%", 20, _log_change),
-        Shock("us.ust10y", "Lợi suất trái phiếu Mỹ 10 năm", "điểm %", 0.5, lambda m: m.diff()),
+        Shock("us.ust10y", "Lợi suất trái phiếu Mỹ 10 năm", "điểm %", 0.5, _diff),
         Shock("us.usd_broad", "Chỉ số USD rộng (Fed)", "%", 5, _log_change),
+        Shock(
+            "global.demand", "Cầu thế giới (SX công nghiệp đối tác)", "điểm %", 2, _diff, core=False
+        ),
+        Shock(
+            "vn.policy_rate",
+            "Lãi suất điều hành NHNN",
+            "điểm %",
+            0.5,
+            _diff,
+            scope="domestic",
+            core=False,
+        ),
+        Shock("vn.usdvnd", "Tỷ giá USD/VND", "%", 3, _log_change, scope="domestic", core=False),
+        Shock(
+            "vn.fdi_yoy",
+            "FDI giải ngân (so cùng kỳ)",
+            "điểm %",
+            10,
+            _diff,
+            scope="domestic",
+            core=False,
+        ),
+        Shock(
+            "vn.credit_growth",
+            "Tăng trưởng tín dụng (so cùng kỳ)",
+            "điểm %",
+            2,
+            _diff,
+            scope="domestic",
+            core=False,
+        ),
+        Shock(
+            "vn.public_investment",
+            "Giải ngân đầu tư công (so cùng kỳ)",
+            "điểm %",
+            10,
+            _diff,
+            scope="domestic",
+            core=False,
+        ),
     ]
 }
 
 OUTCOMES = [
+    Outcome("vn.gdp_yoy", "GDP (so cùng kỳ)", "điểm %"),
     Outcome("vn.exports", "Xuất khẩu (tăng trưởng so cùng kỳ)", "điểm %"),
     Outcome("vn.iip", "Sản xuất công nghiệp (IIP, so cùng kỳ)", "điểm %"),
     Outcome("vn.pmi_mfg", "PMI sản xuất", "điểm"),
@@ -151,6 +201,24 @@ def outcome_series(
     return y, None, f"Nguồn: {source}" if source else ""
 
 
+def has_data(conn: psycopg.Connection[dict], series_id: str) -> bool:
+    row = conn.execute(
+        "SELECT 1 FROM latest_observations WHERE series_id = %s LIMIT 1", (series_id,)
+    ).fetchone()
+    return row is not None
+
+
+def listed_shocks(conn: psycopg.Connection[dict]) -> tuple[list[Shock], list[Shock]]:
+    """(yếu tố dùng được trên database này, yếu tố mở rộng chưa có dữ liệu)."""
+    listed, without = [], []
+    for shock in SHOCKS.values():
+        if shock.core or has_data(conn, shock.series_id):
+            listed.append(shock)
+        else:
+            without.append(shock)
+    return listed, without
+
+
 def _connector(conn: psycopg.Connection[dict], series_id: str) -> str | None:
     row = conn.execute("SELECT connector FROM series WHERE id = %s", (series_id,)).fetchone()
     return row["connector"] if row else None
@@ -186,8 +254,7 @@ def splice_cpi(imf: pd.Series, local: pd.Series) -> tuple[pd.Series, str | None,
 # ---- Local projections ----
 
 
-def local_projection(y: pd.Series, x: pd.Series, h: int) -> tuple[float, float, int, str]:
-    """(β_h, se, số quan sát, mẫu "MM/YYYY–MM/YYYY")."""
+def _lp_frame(y: pd.Series, x: pd.Series, h: int) -> pd.DataFrame:
     index = y.index.union(x.index)
     y, x = y.reindex(index), x.reindex(index)
     dy = y.diff()
@@ -195,7 +262,28 @@ def local_projection(y: pd.Series, x: pd.Series, h: int) -> tuple[float, float, 
     for lag in range(1, LAGS + 1):
         frame[f"dy{lag}"] = dy.shift(lag)
         frame[f"x{lag}"] = x.shift(lag)
-    frame = frame.dropna()
+    return frame.dropna()
+
+
+def lp_frame(y: pd.Series, x: pd.Series, h: int) -> pd.DataFrame:
+    """Bảng hồi quy của tầm h; hàng t chỉ dùng dữ liệu tới tháng t + h."""
+    return _lp_frame(y, x, h)
+
+
+def lp_beta(frame: pd.DataFrame) -> tuple[float, int]:
+    """(β_h, số quan sát) trên bảng của `lp_frame`, như `local_projection` nhưng không tính sai
+    số chuẩn: nhanh hơn nhiều, dùng cho kiểm chứng lịch sử (ước lượng lại ở mỗi mốc cắt)."""
+    if len(frame) < MIN_OBSERVATIONS:
+        return float("nan"), len(frame)
+    regressors = frame.drop(columns="lhs").to_numpy()
+    design = np.column_stack([np.ones(len(frame)), regressors])
+    coef, *_ = np.linalg.lstsq(design, frame["lhs"].to_numpy(), rcond=None)
+    return float(coef[1]), len(frame)
+
+
+def local_projection(y: pd.Series, x: pd.Series, h: int) -> tuple[float, float, int, str]:
+    """(β_h, se, số quan sát, mẫu "MM/YYYY–MM/YYYY")."""
+    frame = _lp_frame(y, x, h)
     if len(frame) < MIN_OBSERVATIONS:
         return float("nan"), float("nan"), len(frame), ""
     regressors = sm.add_constant(frame.drop(columns="lhs"))
