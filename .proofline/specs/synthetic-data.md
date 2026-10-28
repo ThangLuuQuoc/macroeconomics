@@ -121,12 +121,12 @@ metrics:
     command: uv run python -m macro.synthetic recover --scenario baseline --out {out}
     value: .mean_rel_error
     threshold: {max: 0.2}
-    files: [backend/macro/synthetic/recover.py, backend/macro/synthetic/scenarios/baseline.yaml]
+    files: [backend/macro/synthetic/recover.py, backend/macro/synthetic/generate.py, backend/macro/synthetic/scenarios/baseline.yaml]
   - name: false_positive
     command: uv run python -m macro.synthetic recover --scenario baseline --out {out}
     value: .false_positive_share
     threshold: {max: 0.2}
-    files: [backend/macro/synthetic/recover.py, backend/macro/synthetic/scenarios/baseline.yaml]
+    files: [backend/macro/synthetic/recover.py, backend/macro/synthetic/generate.py, backend/macro/synthetic/scenarios/baseline.yaml]
 ```
 
 Từ đó về sau, mọi thay đổi mô hình (vd `multi-shock-model`) phải giữ được hai chỉ số này, nếu không gate báo fail.

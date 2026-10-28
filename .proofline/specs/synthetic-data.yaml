@@ -4,7 +4,24 @@ spec: synthetic-data.md
 base: main
 journey: tests/journeys/test_synthetic_data.py
 kind: ''
-metrics: []
+metrics:
+- name: recovery_error
+  command: uv run python -m macro.synthetic recover --scenario baseline --out {out}
+  value: .mean_rel_error
+  kind: fixture
+  threshold:
+    max: 0.2
+  files: &id001
+  - backend/macro/synthetic/recover.py
+  - backend/macro/synthetic/generate.py
+  - backend/macro/synthetic/scenarios/baseline.yaml
+- name: false_positive
+  command: uv run python -m macro.synthetic recover --scenario baseline --out {out}
+  value: .false_positive_share
+  kind: fixture
+  threshold:
+    max: 0.2
+  files: *id001
 journey_approvals:
 - blob: e23d7057961c35b9575ac22902f1f2a876107d0e
   approved_at: '2026-10-28T07:10:40+00:00'
