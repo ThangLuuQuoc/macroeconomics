@@ -33,6 +33,7 @@ series:                      # quá trình sinh, khai báo trong KHÔNG GIAN MÔ
     from: 2026-01
     lower: 9
     upper: 15
+cpi: {overlap_months: 24, offset: 0}   # hai chuỗi thành phần của CPI, xem mục 3 dưới đây
 relations:                   # quan hệ gài vào: y_t += beta · x_{t-lag}
   - {outcome: vn.pmi_mfg, shock: global.brent, beta: 0.2, lag: 1}
   - {outcome: vn.vnindex, shock: global.brent, beta: -0.3, lag: 1}
@@ -44,7 +45,8 @@ missing: []                  # chuỗi cố ý không có
 
 1. **Sinh số:** `ar1`, `random_walk`, `noise`, `bounded`; quan hệ tuyến tính có trễ; sự kiện cộng thêm một tháng. Cùng tệp và cùng `seed` thì ra **đúng từng con số như nhau**.
 2. **Đổi về đơn vị nguồn:** quá trình được khai báo theo đúng biến mà mô hình dùng (sau phép biến đổi trong `scenario.py`), rồi bộ sinh **đổi ngược** về chuỗi gốc theo `series_id` và đơn vị của nguồn thật: thay đổi log → mức giá; chênh lệch → mức lợi suất; tăng trưởng so cùng kỳ của xuất khẩu → mức xuất khẩu (12 tháng đầu là mức nền); `100·log` của VN-Index → điểm chỉ số. Nhờ vậy mọi trang hiện có chạy trên dữ liệu giả **không cần sửa gì**.
-3. **CPI sinh cả hai chuỗi thành phần** (`vn.cpi_yoy_imf` và `vn.cpi_yoy`), chồng nhau ít nhất `SPLICE_CHECK_MONTHS` tháng và lệch nhau trong `SPLICE_TOLERANCE`, để phần nối chuỗi của trang giả lập cũng được thử. Kịch bản có thể khai báo độ lệch lớn hơn để thử trường hợp nối thất bại.
+3. **CPI sinh cả hai chuỗi thành phần** (`vn.cpi_yoy_imf` và `vn.cpi_yoy`), chồng nhau `cpi.overlap_months` tháng, trên đoạn chồng thì `vn.cpi_yoy = vn.cpi_yoy_imf + cpi.offset`, để phần nối chuỗi của trang giả lập cũng được thử (`offset` vượt `SPLICE_TOLERANCE` thì nối thất bại).
+4. **Kế thừa:** `extends: <tên>` lấy toàn bộ một kịch bản khác rồi ghi đè các khoá khai báo thêm.
 
 ### 2.2. GDP theo tháng và các yếu tố chỉ có trong giả lập
 
@@ -76,7 +78,7 @@ Dữ liệu giả lập có thêm những chuỗi **chưa có nguồn thật**, 
 ### 2.4. Không trộn với số thật
 
 - Bộ sinh **chỉ** ghi vào database giả lập; `fetch_runs.connector = 'synthetic'`, `raw_path` ghi tên kịch bản và seed.
-- `ingest --synthetic` **từ chối** (không ghi gì, thoát mã ≠ 0) nếu database đích đã có lần lấy thật; `ingest` thường **từ chối** nếu database đã có lần lấy giả lập.
+- `ingest --synthetic` **từ chối** (không ghi gì, thoát mã ≠ 0, thông báo bắt đầu bằng `Từ chối:`) nếu database đích đã có lần lấy thật; `ingest` thường **từ chối** theo cùng cách nếu database đã có lần lấy giả lập.
 - `python -m macro.measure` (gate chỉ số trên số thật) luôn đọc database thật, kể cả khi có cookie hay biến môi trường giả lập.
 - `GET /api/data-mode` trả `{"mode": "synthetic", "scenario": "baseline", "seed": 42, "scenarios": [...]}` hoặc `{"mode": "real", "scenarios": [...]}`.
 - Khi đang xem giả lập, **mọi trang** hiện dải cố định trên cùng: "DỮ LIỆU GIẢ LẬP — kịch bản baseline, seed 42. Không phải số liệu thật."; nhãn nguồn của từng chỉ số là "Giả lập (baseline)".
@@ -87,6 +89,7 @@ Dữ liệu giả lập có thêm những chuỗi **chưa có nguồn thật**, 
 - `shock-2022`: như `baseline` cộng một cú sốc dầu, lãi suất và USD cùng lúc năm 2022 (để thử giả lập nhiều cú sốc sau này).
 - `missing-data`: thiếu CPI và USD.
 - `source-failure`: lần lấy thứ hai ghi lỗi; kiểm quy tắc T-4 (giữ số cũ, báo rõ).
+- `cpi-mismatch`: như `baseline` nhưng `cpi.offset: 0.5`, để thử trường hợp nối CPI thất bại.
 - `influence-demo`: do spec `influence-map` khai báo.
 
 ### 2.6. Đo khả năng tìm lại đáp án
@@ -107,6 +110,7 @@ Dữ liệu giả lập có thêm những chuỗi **chưa có nguồn thật**, 
 
 - `max_rel_error`: lớn nhất của `|ước lượng − thật| / |thật|` trên mọi quan hệ gài **tuyến tính** (bỏ quan hệ `bounded`) và mọi tầm h = 1..12. Đáp án thật ở tầm h là phản ứng cộng dồn theo quá trình đã khai báo (vd bước ngẫu nhiên với một trễ: bằng `beta` ở mọi h ≥ 1).
 - `false_positive_share`: với các cặp **không** gài quan hệ, tỷ lệ tầm h mà khoảng tin cậy 90% **không** chứa 0.
+- `--truth FILE` (JSON `{"relations": [...]}`, cùng dạng `relations` của kịch bản) thay đáp án lấy từ kịch bản; chỉ để kiểm rằng phép đo bắt được đáp án sai.
 
 **Gate chỉ số** khai báo trong manifest của spec này (`kind: fixture`, chặn). Ngưỡng **tạm thời** (2026-10-28), xem lại sau khi đã chạy và xem kết quả trên giao diện:
 
@@ -126,6 +130,8 @@ metrics:
 
 Từ đó về sau, mọi thay đổi mô hình (vd `multi-shock-model`) phải giữ được hai chỉ số này, nếu không gate báo fail.
 
+**Khi nào khai báo `metrics` vào manifest:** `recover.py` và `baseline.yaml` chưa có lúc duyệt spec này, nên Proofline sẽ khoá chúng ở trạng thái "absent" và báo `metrics_unchanged` fail ngay khi viết ra. Vì vậy: lần duyệt đầu **chưa** có `metrics`; ngưỡng của tính năng này được giữ bằng chính journey (mục 3, ý 11, gọi `recover` và so ngưỡng). Khi code xong và journey đạt, thêm khối `metrics` ở trên vào manifest và chủ dự án duyệt lại trong terminal, trước khi merge; từ đó gate chỉ số bảo vệ các thay đổi sau.
+
 **Không làm:** giao diện để soạn hay sửa kịch bản (chỉ chọn trong danh sách có sẵn và đổi seed); nhiều database giả lập cùng lúc; sinh dữ liệu theo mùa vụ hay phân phối đuôi dày; giả lập định dạng bản gốc của từng nguồn thật (đã có trong test journey, giữ nguyên).
 
 ## 3. Tiêu chí nghiệm thu dự kiến (chốt khi viết journey)
@@ -139,18 +145,19 @@ Kiểm bằng `tests/journeys/test_synthetic_data.py`:
 5. `ingest --synthetic` vào database đã có lần lấy thật: báo lỗi, không ghi gì; `ingest` thường vào database giả lập: báo lỗi, không ghi gì.
 6. Trang giả lập trên `baseline`, cú sốc dầu: PMI có khoảng tin cậy chứa `0,2` ở mọi tầm và không chứa 0; IIP (không gài quan hệ) có khoảng tin cậy chứa 0. Danh sách cú sốc có cả các yếu tố ở 2.2.
 7. GDP trên `baseline`: mọi tháng từ 01/2026 tới 12/2036 có tăng trưởng trong [9%, 15%].
-8. CPI trên `baseline`: thẻ CPI có số, nối từ hai chuỗi thành phần; kịch bản có độ lệch lớn: báo nối thất bại như với số thật.
-9. `missing-data`: thẻ CPI và cú sốc USD báo "chưa đủ dữ liệu". `source-failure`: trang tổng quan giữ số của lần lấy trước và báo lần lấy sau lỗi.
+8. CPI trên `baseline`: trang giả lập có phản ứng của CPI (nối từ hai chuỗi thành phần); `cpi-mismatch`: báo "Chưa nối được lịch sử CPI" như với số thật.
+9. `missing-data`: trang kiểm chứng báo CPI "Chưa đủ dữ liệu để kiểm chứng" và liệt kê USD là cú sốc thiếu. `source-failure`: trang tổng quan giữ số của lần lấy trước và báo "Nguồn lỗi".
 10. Ở chế độ số thật, các yếu tố ở 2.2 không có trong danh sách cú sốc, và có dòng "Chưa có dữ liệu thật: …".
 11. `recover` trên `baseline`: `max_rel_error ≤ 0,25`, `false_positive_share ≤ 0,2`; một kịch bản gài sai đáp án (`truth.json` lệch) thì `max_rel_error` vượt ngưỡng — để chắc phép đo không luôn đạt.
 
 ## 4. Hợp đồng giao diện
 
-- `data-testid=data-mode-switch` trên mọi trang, với `data-testid=mode-real`, `data-testid=mode-synthetic`, `data-testid=scenario-select`, `data-testid=seed-input`, `data-testid=synthetic-loading` khi đang nạp.
+- `data-testid=data-mode-switch` trên mọi trang, với `data-testid=mode-real`, `data-testid=mode-synthetic`, `data-testid=scenario-select`, `data-testid=seed-input`, nút `data-testid=load-synthetic`, `data-testid=synthetic-loading` khi đang nạp.
 - `data-testid=synthetic-banner` trên mọi trang khi đang xem giả lập, có thuộc tính `data-scenario`, `data-seed`; không có phần tử này khi xem số thật.
 - `data-testid=no-real-data` liệt kê các yếu tố chưa có dữ liệu thật.
 - API: `GET /api/data-mode`; `POST /api/synthetic/load` với `{"scenario": "baseline", "seed": 42}` (nạp lại `macro_synthetic`, trả khi xong); chế độ theo cookie `macro_data`.
-- CLI: `python -m macro.ingest --synthetic <tên|tệp> [--seed N] [--database-url URL]`; `python -m macro.synthetic recover --scenario <tên|tệp> --out FILE`.
+- CLI: `python -m macro.ingest --synthetic <tên|tệp> [--seed N] [--database-url URL]`; `python -m macro.synthetic recover --scenario <tên|tệp> [--truth FILE] --out FILE`.
+- Cấu hình: `Settings.synthetic_database_url` (mặc định: `database_url` đổi tên database thành `macro_synthetic`; biến môi trường `MACRO_SYNTHETIC_DATABASE_URL`).
 
 ## 5. Quyết định của chủ dự án
 

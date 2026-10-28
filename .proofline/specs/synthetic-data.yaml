@@ -1,0 +1,6 @@
+name: synthetic-data
+task_type: feature
+spec: synthetic-data.md
+base: main
+journey: tests/journeys/test_synthetic_data.py
+journey_approvals: []
