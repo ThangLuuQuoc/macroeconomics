@@ -1,0 +1,6 @@
+name: influence-map
+task_type: feature
+spec: influence-map.md
+base: main
+journey: tests/journeys/test_influence_map.py
+journey_approvals: []
