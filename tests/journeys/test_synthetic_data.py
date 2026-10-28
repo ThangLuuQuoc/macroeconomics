@@ -8,6 +8,7 @@ khi bắt đầu, để kiểm app tự tạo nó.
 from __future__ import annotations
 
 import calendar
+import dataclasses
 import json
 import math
 import os
@@ -114,6 +115,9 @@ def app(database_url: str, tmp_path: Path) -> Iterator[Callable[[], tuple[str, s
             ingest.main(["--raw-dir", str(tmp_path / "real"), "--database-url", database_url]) == 0
         )
         synthetic_url = _with_db(database_url, synthetic_name)
+        assert "synthetic_database_url" in {f.name for f in dataclasses.fields(Settings)}, (
+            "Settings chưa có synthetic_database_url (spec synthetic-data mục 4)"
+        )
         settings = Settings(
             database_url=database_url, web_dir=DEFAULT_WEB_DIR, synthetic_database_url=synthetic_url
         )
