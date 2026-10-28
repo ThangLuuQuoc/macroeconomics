@@ -102,24 +102,25 @@ Dữ liệu giả lập có thêm những chuỗi **chưa có nguồn thật**, 
   "relations": {
     "vn.pmi_mfg<-global.brent": {"truth": 0.2, "horizons": [{"h": 1, "estimate": 0.19, "lower": 0.12, "upper": 0.26, "covered": true}], "max_rel_error": 0.08, "coverage": 1.0}
   },
-  "max_rel_error": 0.08,
+  "mean_rel_error": 0.08,
+  "max_rel_error": 0.15,
   "null_pairs": {"vn.iip<-global.brent": {"false_positive_share": 0.0}},
   "false_positive_share": 0.0
 }
 ```
 
-- `max_rel_error`: lớn nhất của `|ước lượng − thật| / |thật|` trên mọi quan hệ gài **tuyến tính** (bỏ quan hệ `bounded`) và mọi tầm h = 1..12. Đáp án thật ở tầm h là phản ứng cộng dồn theo quá trình đã khai báo (vd bước ngẫu nhiên với một trễ: bằng `beta` ở mọi h ≥ 1).
+- `mean_rel_error` (chỉ số của gate) và `max_rel_error`: trung bình và lớn nhất của `|ước lượng − thật| / |thật|` trên mọi quan hệ gài **tuyến tính** (bỏ quan hệ `bounded`) và mọi tầm h = 1..12. Gate dùng **trung bình**: sai số mẫu ở tầm dài có độ lệch chuẩn ~16% (mẫu 2005–2036), nên giá trị lớn nhất của 24 con số nhiễu không ổn định (đo trên 60 seed: `max ≤ 0,25` chỉ đạt 70%, `mean ≤ 0,2` đạt 97%). Đáp án thật ở tầm h là phản ứng cộng dồn theo quá trình đã khai báo (vd bước ngẫu nhiên với một trễ: bằng `beta` ở mọi h ≥ 1).
 - `false_positive_share`: với các cặp **không** gài quan hệ, tỷ lệ tầm h mà khoảng tin cậy 90% **không** chứa 0.
 - `--truth FILE` (JSON `{"relations": [...]}`, cùng dạng `relations` của kịch bản) thay đáp án lấy từ kịch bản; chỉ để kiểm rằng phép đo bắt được đáp án sai.
 
-**Gate chỉ số** khai báo trong manifest của spec này (`kind: fixture`, chặn). Ngưỡng **tạm thời** (2026-10-28), xem lại sau khi đã chạy và xem kết quả trên giao diện:
+**Gate chỉ số** khai báo trong manifest của spec này (`kind: fixture`, chặn). Ngưỡng **tạm thời** (2026-10-28, sửa cùng ngày sau khi đo nhiễu thật), xem lại sau khi đã chạy và xem kết quả trên giao diện:
 
 ```yaml
 metrics:
   - name: recovery_error
     command: uv run python -m macro.synthetic recover --scenario baseline --out {out}
-    value: .max_rel_error
-    threshold: {max: 0.25}
+    value: .mean_rel_error
+    threshold: {max: 0.2}
     files: [backend/macro/synthetic/recover.py, backend/macro/synthetic/scenarios/baseline.yaml]
   - name: false_positive
     command: uv run python -m macro.synthetic recover --scenario baseline --out {out}
@@ -143,12 +144,12 @@ Kiểm bằng `tests/journeys/test_synthetic_data.py`:
 3. Hai trình duyệt: một bên bật giả lập, bên kia vẫn thấy số thật.
 4. Nạp `baseline` hai lần: số giống hệt nhau; đổi seed: số khác.
 5. `ingest --synthetic` vào database đã có lần lấy thật: báo lỗi, không ghi gì; `ingest` thường vào database giả lập: báo lỗi, không ghi gì.
-6. Trang giả lập trên `baseline`, cú sốc dầu: PMI có khoảng tin cậy chứa `0,2` ở mọi tầm và không chứa 0; IIP (không gài quan hệ) có khoảng tin cậy chứa 0. Danh sách cú sốc có cả các yếu tố ở 2.2.
+6. Trang giả lập trên `baseline`, cú sốc dầu: PMI có khoảng tin cậy không chứa 0 và ước lượng trong ±40% của `0,2` ở mọi tầm; IIP (không gài quan hệ) có khoảng tin cậy chứa 0. Danh sách cú sốc có cả các yếu tố ở 2.2.
 7. GDP trên `baseline`: mọi tháng từ 01/2026 tới 12/2036 có tăng trưởng trong [9%, 15%].
 8. CPI trên `baseline`: trang giả lập có phản ứng của CPI (nối từ hai chuỗi thành phần); `cpi-mismatch`: báo "Chưa nối được lịch sử CPI" như với số thật.
 9. `missing-data`: trang kiểm chứng báo CPI "Chưa đủ dữ liệu để kiểm chứng" và liệt kê USD là cú sốc thiếu. `source-failure`: trang tổng quan giữ số của lần lấy trước và báo "Nguồn lỗi".
 10. Ở chế độ số thật, các yếu tố ở 2.2 không có trong danh sách cú sốc, và có dòng "Chưa có dữ liệu thật: …".
-11. `recover` trên `baseline`: `max_rel_error ≤ 0,25`, `false_positive_share ≤ 0,2`; một kịch bản gài sai đáp án (`truth.json` lệch) thì `max_rel_error` vượt ngưỡng — để chắc phép đo không luôn đạt.
+11. `recover` trên `baseline`: `mean_rel_error ≤ 0,2`, `false_positive_share ≤ 0,2`; đáp án sai (`--truth` gấp đôi mọi β) thì `mean_rel_error` vượt ngưỡng — để chắc phép đo không luôn đạt.
 
 ## 4. Hợp đồng giao diện
 
@@ -164,6 +165,7 @@ Kiểm bằng `tests/journeys/test_synthetic_data.py`:
 - 2026-10-28: làm dữ liệu giả lập trước màn hình bong bóng (`influence-map`); dữ liệu giả không được trộn với số thật và luôn phải nhìn thấy được trên giao diện.
 - 2026-10-28, câu hỏi mở:
   1. Ngưỡng `recovery_error ≤ 0,25` và `false_positive ≤ 0,2`: chấp nhận **tạm thời**, xem lại sau khi xem kết quả trên giao diện.
+- 2026-10-28, sau khi làm: tiêu chí ban đầu quá chặt so với sai số mẫu thật (đo trên 60 seed: khoảng tin cậy của PMI chứa 0,2 ở cả 12 tầm chỉ đạt 57%, sai lệch lớn nhất ≤ 0,25 đạt 70%; seed 42 cho 0,30). Chủ dự án quyết định: `recovery_error` dùng **sai lệch trung bình ≤ 0,2**; PMI kiểm **khoảng tin cậy không chứa 0 và ước lượng trong ±40% của 0,2** ở mọi tầm; không đổi seed để test đạt.
   2. Database giả lập có tên riêng `macro_synthetic`, app tự tạo và tự nối tới khi người dùng chọn xem giả lập.
   3. Giả lập là một tính năng **ngay trong app đang chạy** (công tắc Thật/Giả lập), không phải một lệnh chạy app riêng.
   4. Kịch bản sinh **cả hai** chuỗi thành phần của CPI.

@@ -4,8 +4,10 @@ Spec synthetic-data mục 2.6. Nạp kịch bản vào một database tạm (kh�
 xem), chạy đúng hàm ước lượng của trang giả lập (`simulate`, cú sốc 1 đơn vị) và so với đáp án
 thật tính từ kịch bản (`impulse_response`):
 
-- `max_rel_error`: lớn nhất của |ước lượng − thật| / |thật| trên mọi cặp có quan hệ tuyến tính,
-  mọi tầm h = 1..12; bỏ cặp đi qua chuỗi `bounded` (phản ứng không tuyến tính);
+- `mean_rel_error` (chỉ số của gate) và `max_rel_error`: trung bình và lớn nhất của
+  |ước lượng − thật| / |thật| trên mọi cặp có quan hệ tuyến tính, mọi tầm h = 1..12; bỏ cặp đi
+  qua chuỗi `bounded` (phản ứng không tuyến tính). Dùng trung bình vì sai số mẫu ở tầm dài lớn
+  (độ lệch chuẩn ~16% ở tầm 12 với mẫu 2005–2036): lớn nhất của 24 con số nhiễu không ổn định;
 - `false_positive_share`: với các cặp không có quan hệ, tỷ lệ tầm h mà khoảng tin cậy 90% không
   chứa 0.
 """
@@ -107,6 +109,7 @@ def recover(
     return {
         "data_snapshot": f"synthetic:{scenario.name}:{scenario.seed}",
         "relations": pairs,
+        "mean_rel_error": sum(errors) / len(errors),
         "max_rel_error": max(errors),
         "null_pairs": nulls,
         "false_positive_share": sum(flags) / len(flags) if flags else 0.0,
