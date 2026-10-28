@@ -11,7 +11,7 @@ metrics:
   kind: fixture
   threshold:
     max: 0.2
-  files: &id001
+  files:
   - backend/macro/synthetic/recover.py
   - backend/macro/synthetic/generate.py
   - backend/macro/synthetic/scenarios/baseline.yaml
@@ -21,7 +21,10 @@ metrics:
   kind: fixture
   threshold:
     max: 0.2
-  files: *id001
+  files:
+  - backend/macro/synthetic/recover.py
+  - backend/macro/synthetic/generate.py
+  - backend/macro/synthetic/scenarios/baseline.yaml
 journey_approvals:
 - blob: e23d7057961c35b9575ac22902f1f2a876107d0e
   approved_at: '2026-10-28T07:10:40+00:00'
@@ -44,3 +47,13 @@ journey_approvals:
   via: terminal
   metrics: ''
   metric_files: {}
+- blob: 176cf1f89e3fa350d2a77348f7a38530e6c82754
+  approved_at: '2026-10-28T08:32:53+00:00'
+  note: ''
+  decision_id: af280232051345c082e54b5ac68dcacd
+  via: terminal
+  metrics: 8b76593e101a1db8
+  metric_files:
+    backend/macro/synthetic/recover.py: 0ae580d6346bcd2ae6e9f7665af75336218aff9d
+    backend/macro/synthetic/generate.py: 3822434feaa03bfc0597c65c52f33704f9274313
+    backend/macro/synthetic/scenarios/baseline.yaml: a0631f0cfa3335586851f0331edb0aa3ae7a82b9
