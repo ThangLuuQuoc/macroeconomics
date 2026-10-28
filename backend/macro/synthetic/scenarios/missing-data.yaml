@@ -1,0 +1,18 @@
+# Chỉ các chuỗi gốc, thiếu CPI và USD; ngắn hơn baseline.
+name: missing-data
+title: Thiếu CPI và USD
+seed: 42
+start: 2005-01
+end: 2026-09
+series:
+  global.brent: {process: ar1, mean: 0, phi: 0, sd: 6}
+  us.ust10y: {process: ar1, mean: 0, phi: 0.1, sd: 0.2}
+  us.usd_broad: {process: ar1, mean: 0, phi: 0.3, sd: 1.5}
+  vn.exports: {process: ar1, mean: 10, phi: 0.7, sd: 3}
+  vn.iip: {process: noise, mean: 8, sd: 2}
+  vn.pmi_mfg: {process: random_walk, start: 50, sd: 0.3}
+  vn.vnindex: {process: random_walk, start: 709, sd: 0.5}
+  vn.cpi_yoy_long: {process: ar1, mean: 3.5, phi: 0.9, sd: 0.3}
+relations:
+  - {outcome: vn.pmi_mfg, shock: global.brent, beta: 0.2, lag: 1}
+missing: [vn.cpi_yoy_long, us.usd_broad]

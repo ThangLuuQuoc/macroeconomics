@@ -1,0 +1,36 @@
+# Kịch bản mặc định khi bật giả lập (spec synthetic-data mục 2.5).
+# Quá trình khai báo trong không gian mô hình dùng: cú sốc là x_t (thay đổi log % hoặc chênh lệch),
+# biến kết quả là y_t của trang giả lập.
+name: baseline
+title: Cơ sở — quan hệ gài sẵn, GDP 9–15% từ 2026
+seed: 42
+start: 2005-01
+end: 2036-12
+series:
+  global.brent: {process: ar1, mean: 0, phi: 0, sd: 6}
+  us.ust10y: {process: ar1, mean: 0, phi: 0.1, sd: 0.2}
+  us.usd_broad: {process: ar1, mean: 0, phi: 0.3, sd: 1.5}
+  global.demand: {process: ar1, mean: 0, phi: 0.3, sd: 1}
+  vn.policy_rate: {process: ar1, mean: 0, phi: 0.2, sd: 0.15}
+  vn.usdvnd: {process: ar1, mean: 0.1, phi: 0.2, sd: 0.8}
+  vn.fdi_yoy: {process: ar1, mean: 0, phi: 0.1, sd: 5}
+  vn.credit_growth: {process: ar1, mean: 0, phi: 0.3, sd: 0.6}
+  vn.public_investment: {process: ar1, mean: 0, phi: 0.1, sd: 6}
+  vn.gdp_yoy:
+    process: bounded
+    before: {mean: 6.5, phi: 0.8, sd: 0.4}
+    from: 2026-01
+    lower: 9
+    upper: 15
+  vn.exports: {process: ar1, mean: 10, phi: 0.7, sd: 3}
+  vn.iip: {process: noise, mean: 8, sd: 2}
+  vn.pmi_mfg: {process: random_walk, start: 50, sd: 0.3}
+  vn.vnindex: {process: random_walk, start: 709, sd: 0.5}  # y_t = 100·log(điểm), ~1200 điểm
+  vn.cpi_yoy_long: {process: ar1, mean: 3.5, phi: 0.9, sd: 0.3}
+cpi: {overlap_months: 24, offset: 0}
+relations:
+  - {outcome: vn.pmi_mfg, shock: global.brent, beta: 0.2, lag: 1}
+  - {outcome: vn.vnindex, shock: global.brent, beta: -0.3, lag: 1}
+  - {outcome: vn.gdp_yoy, shock: global.demand, beta: 0.15, lag: 2}
+events: []  # cú sốc lớn một lần nằm ở kịch bản shock-2022
+missing: []

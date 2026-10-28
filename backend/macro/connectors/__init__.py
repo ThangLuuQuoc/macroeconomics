@@ -27,6 +27,7 @@ SOURCE_LABELS = {
     "wb_pinksheet": "World Bank Pink Sheet",
     "openstock": "openstock",
     "dbnomics": "IMF qua DBnomics",
+    "synthetic": "Giả lập",  # không nằm trong CONNECTORS (spec synthetic-data)
 }
 
 # Connector có mã chuỗi riêng cho từng chỉ số: hiện kèm mã, vd "FRED · DGS10".

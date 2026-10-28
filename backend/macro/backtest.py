@@ -17,9 +17,10 @@ from macro.scenario import (
     HORIZONS,
     MIN_OBSERVATIONS,
     OUTCOMES,
-    SHOCKS,
+    listed_shocks,
     load_monthly,
-    local_projection,
+    lp_beta,
+    lp_frame,
     outcome_series,
 )
 
@@ -68,10 +69,12 @@ def _label(month: pd.Period) -> str:
     return f"{month.month:02d}/{month.year}"
 
 
-def _betas(y: pd.Series, x: pd.Series, cut: pd.Period) -> dict[int, float] | None:
+def _betas(frames: dict[int, pd.DataFrame], cut: pd.Period) -> dict[int, float] | None:
+    """β_h ước lượng chỉ bằng dữ liệu ≤ cut: các hàng t có t + h ≤ cut."""
     betas = {}
     for h in HORIZONS:
-        beta, _, n, _ = local_projection(y[:cut], x[:cut], h)
+        frame = frames[h]
+        beta, n = lp_beta(frame[frame.index <= cut - h])
         if np.isnan(beta) or n < MIN_OBSERVATIONS:
             return None
         betas[h] = beta
@@ -86,14 +89,15 @@ def backtest_outcome(
     if y.empty or not shocks:
         result.insufficient_text = "Chưa đủ dữ liệu để kiểm chứng."
         return result
+    frames = {sid: {h: lp_frame(y, x, h) for h in HORIZONS} for sid, x in shocks.items()}
     episodes = []
     for cut in (p for p in y.index if p.month == 12):
         end = cut + H
         if end not in y.index or cut not in y.index:
             continue
         predicted, used = 0.0, False
-        for x in shocks.values():
-            betas = _betas(y, x, cut)
+        for sid, x in shocks.items():
+            betas = _betas(frames[sid], cut)
             if betas is None:
                 continue
             used = True
@@ -145,12 +149,12 @@ def backtest_outcome(
 
 def run_backtest(conn: psycopg.Connection[dict]) -> BacktestResult:
     shocks, missing = {}, []
-    for shock_id, shock in SHOCKS.items():
-        x = shock.transform(load_monthly(conn, shock_id))
+    for shock in listed_shocks(conn)[0]:
+        x = shock.transform(load_monthly(conn, shock.series_id))
         if x.dropna().empty:
             missing.append(shock.name)
         else:
-            shocks[shock_id] = x
+            shocks[shock.series_id] = x
     outcomes = []
     for outcome in OUTCOMES:
         y, reason, _ = outcome_series(conn, outcome.series_id)

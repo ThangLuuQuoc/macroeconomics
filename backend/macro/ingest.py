@@ -4,6 +4,8 @@
   `data/raw/<connector>/<thời điểm>/` rồi đọc.
 - Có `--raw-dir`: chỉ đọc bản gốc có sẵn trong `<raw-dir>/<connector>/` (không gọi mạng), dùng để
   kiểm thử và nạp lại.
+- `--synthetic <kịch bản>`: nạp dữ liệu giả lập (spec synthetic-data); mặc định vào database giả
+  lập riêng. Không bao giờ trộn với số thật: hai chiều đều từ chối.
 
 Mỗi connector là một lần lấy (`fetch_runs`). Lỗi thì ghi lại và giữ nguyên số cũ (T-4).
 """
@@ -90,8 +92,22 @@ def main(argv: list[str] | None = None, connectors: list[Connector] | None = Non
     parser = argparse.ArgumentParser(prog="python -m macro.ingest")
     parser.add_argument("--raw-dir", type=Path, help="Chỉ đọc bản gốc có sẵn trong thư mục này")
     parser.add_argument("--database-url", help="Mặc định: $MACRO_DATABASE_URL")
+    parser.add_argument("--synthetic", metavar="KỊCH_BẢN", help="Tên kịch bản hoặc tệp YAML")
+    parser.add_argument("--seed", type=int, help="Chỉ với --synthetic; mặc định seed của kịch bản")
     args = parser.parse_args(argv)
     settings = load_settings()
+    from macro.synthetic.load import Refused, load, refuse_if_synthetic
+
+    if args.synthetic:
+        try:
+            scenario, seed = load(
+                args.database_url or settings.synthetic_database_url, args.synthetic, args.seed
+            )
+        except Refused as exc:
+            print(exc, file=sys.stderr)
+            return 2
+        print(f"synthetic: ok kịch bản {scenario.name}, seed {seed}")
+        return 0
     connectors = CONNECTORS if connectors is None else connectors
     known = {c.name for c in connectors}
     if args.raw_dir is not None and args.raw_dir.is_dir():
@@ -100,6 +116,11 @@ def main(argv: list[str] | None = None, connectors: list[Connector] | None = Non
                 print(f"Bỏ qua {folder.name}: chưa có connector", file=sys.stderr)
     with connect(args.database_url or settings.database_url) as conn:
         init_schema(conn)
+        try:
+            refuse_if_synthetic(conn)
+        except Refused as exc:
+            print(exc, file=sys.stderr)
+            return 2
         results = ingest(
             conn,
             connectors,

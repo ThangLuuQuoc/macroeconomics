@@ -121,3 +121,35 @@ a {
   color: var(--warn);
   font-size: 0.85rem;
 }
+
+.synthetic-banner {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--warn);
+  color: #fff;
+  font-weight: 600;
+  padding: 8px 16px;
+  text-align: center;
+}
+
+.data-mode {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 8px 16px 0;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.data-mode button[aria-pressed="true"] {
+  font-weight: 700;
+}
+
+.data-mode-error {
+  color: var(--warn);
+}
+
+.no-real-data {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
