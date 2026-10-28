@@ -18,6 +18,7 @@ from macro.backtest import BacktestResult, run_backtest
 from macro.config import Settings, load_settings
 from macro.dashboard import IndicatorCard, build_cards
 from macro.db import connect, init_schema
+from macro.influence import InfluenceResult, influence
 from macro.scenario import SHOCKS, ScenarioResult, listed_shocks, simulate
 from macro.synthetic import load as synthetic
 from macro.synthetic.model import load_scenario, preset_names
@@ -129,6 +130,14 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     def backtest(macro_data: ModeCookie = None) -> BacktestResult:
         with connect(database(macro_data)) as conn:
             return run_backtest(conn)
+
+    @app.get("/api/influence")
+    def influence_map(
+        center: str | None = None, month: str | None = None, macro_data: ModeCookie = None
+    ) -> InfluenceResult:
+        real = synthetic_state(macro_data) is None
+        with connect(database(macro_data)) as conn:
+            return influence(conn, center, month, real=real)
 
     @app.get("/api/scenario/shocks")
     def shocks(macro_data: ModeCookie = None) -> ShockList:

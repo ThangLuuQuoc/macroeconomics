@@ -31,6 +31,8 @@ export default function OverviewPage() {
         <Link href="/kich-ban/">Giả lập kịch bản</Link>
         {" · "}
         <Link href="/kiem-chung/">Kiểm chứng lịch sử</Link>
+        {" · "}
+        <Link href="/anh-huong/">Bản đồ ảnh hưởng</Link>
       </nav>
       {state.kind === "loading" && <p>Đang tải…</p>}
       {state.kind === "error" && <p role="alert">Không tải được dữ liệu: {state.message}</p>}

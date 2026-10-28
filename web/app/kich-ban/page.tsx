@@ -82,7 +82,8 @@ export default function ScenarioPage() {
     <main>
       <p>
         <Link href="/">← Tổng quan vĩ mô</Link> ·{" "}
-        <Link href="/kiem-chung/">Kiểm chứng lịch sử</Link>
+        <Link href="/kiem-chung/">Kiểm chứng lịch sử</Link> ·{" "}
+        <Link href="/anh-huong/">Bản đồ ảnh hưởng</Link>
       </p>
       <h1>Giả lập kịch bản</h1>
       <p className="disclaimer" data-testid="disclaimer">
