@@ -3,7 +3,7 @@
   "repo": "macroeconomics",
   "base_ref": "main",
   "base_sha": "134c59f6046a8688cfaa57c72f0a6f743d5138b4",
-  "head_sha": "51acf343a73004799afd0f486168703099bfcecb",
+  "head_sha": "6b21a69df44bdbbf71678f0b8ad56afcfb053875",
   "runs": 2,
   "gates": [
     {
@@ -22,8 +22,16 @@
       "detail": "journey đúng bản người đã duyệt (176cf1f, qua terminal, 2026-10-28)",
       "evidence": {
         "blob": "176cf1f89e3fa350d2a77348f7a38530e6c82754",
-        "decision_id": "fafb8f613a4d4ba692673adcea43c73e",
+        "decision_id": "af280232051345c082e54b5ac68dcacd",
         "via": "terminal"
+      }
+    },
+    {
+      "key": "metrics_unchanged",
+      "status": "pass",
+      "detail": "chỉ số đúng bản đã duyệt (recovery_error, false_positive)",
+      "evidence": {
+        "fp": "8b76593e101a1db8"
       }
     },
     {
@@ -90,6 +98,36 @@
       }
     },
     {
+      "key": "metric_recovery_error",
+      "status": "pass",
+      "detail": "nhánh 0.1417 (ngưỡng ≤ 0.2), base không đo được (lệnh đo lỗi (exit 1): ve` to target the active environment instead\nF:\\2027\\proof)",
+      "evidence": {
+        "kind": "fixture",
+        "head": 0.14172967307652776,
+        "base": null,
+        "threshold": {
+          "max": 0.2
+        },
+        "better": "lower",
+        "data_snapshot": "synthetic:baseline:42"
+      }
+    },
+    {
+      "key": "metric_false_positive",
+      "status": "pass",
+      "detail": "nhánh 0.0817 (ngưỡng ≤ 0.2), base không đo được (lệnh đo lỗi (exit 1): ve` to target the active environment instead\nF:\\2027\\proof)",
+      "evidence": {
+        "kind": "fixture",
+        "head": 0.08169934640522876,
+        "base": null,
+        "threshold": {
+          "max": 0.2
+        },
+        "better": "lower",
+        "data_snapshot": "synthetic:baseline:42"
+      }
+    },
+    {
       "key": "static_typecheck",
       "status": "pass",
       "detail": "'uv run mypy && pnpm --dir web typecheck' sạch trên nhánh",
@@ -102,7 +140,7 @@
       "evidence": {}
     }
   ],
-  "verified_at": "2026-10-28T08:31:27+00:00",
+  "verified_at": "2026-10-28T08:43:19+00:00",
   "installed": true,
   "task_type": "feature",
   "status": "pass"
